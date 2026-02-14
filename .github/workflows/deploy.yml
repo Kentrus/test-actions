@@ -36,20 +36,20 @@ jobs:
     steps:
       - name: Check deploy secrets
         env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
           missing=""
-          [ -z "$SSH_HOST" ] && missing="SSH_HOST "
-          [ -z "$SSH_USER" ] && missing="${missing}SSH_USER "
-          [ -z "$SSH_KEY" ] && missing="${missing}SSH_PRIVATE_KEY "
+          [ -z "$HOST" ] && missing="HOST "
+          [ -z "$USERNAME" ] && missing="${missing}USERNAME "
+          [ -z "$SSH_KEY" ] && missing="${missing}SSH_KEY "
           [ -z "$GHCR_TOKEN" ] && missing="${missing}GHCR_TOKEN "
           if [ -n "$missing" ]; then
             echo "ERROR: These secrets are empty or not set: $missing"
             echo "Check: Settings -> Secrets and variables -> Actions"
-            echo "Names must be exactly: SSH_HOST, SSH_USER, SSH_PRIVATE_KEY, GHCR_TOKEN"
+            echo "Names must be: HOST, USERNAME, SSH_KEY, GHCR_TOKEN"
             exit 1
           fi
           echo "All 4 secrets are set (values are hidden)."
@@ -57,9 +57,10 @@ jobs:
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
           script: |
             echo "$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
             docker pull ghcr.io/kentrus/test-actions:latest
